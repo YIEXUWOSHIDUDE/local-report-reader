@@ -1,0 +1,14 @@
+.DS_Store
+.venv/
+node_modules/
+dist/
+__pycache__/
+*.pyc
+.env
+data/*.db
+data/uploads/*
+data/exports/*
+data/output/*
+data/test-documents/*
+!data/uploads/.gitkeep
+!data/exports/.gitkeep
