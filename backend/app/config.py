@@ -1,14 +1,27 @@
 from functools import lru_cache
 from pathlib import Path
+import sys
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def app_base_dir() -> Path:
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parents[2]
+
+
+def bundled_resource_dir() -> Path:
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        return Path(sys._MEIPASS)
+    return app_base_dir()
 
 
 class Settings(BaseSettings):
     app_name: str = "可研报告精读工具"
     host: str = "127.0.0.1"
     port: int = 8787
-    data_dir: Path = Path(__file__).resolve().parents[2] / "data"
+    data_dir: Path = app_base_dir() / "data"
     openai_api_key: str | None = None
     openai_base_url: str = "https://api.openai.com/v1"
     openai_model: str = "gpt-4.1-mini"
@@ -18,7 +31,7 @@ class Settings(BaseSettings):
     ai_timeout_seconds: int = 240
 
     model_config = SettingsConfigDict(
-        env_file=Path(__file__).resolve().parents[2] / ".env",
+        env_file=app_base_dir() / ".env",
         env_file_encoding="utf-8",
         extra="ignore",
     )

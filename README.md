@@ -26,35 +26,16 @@
 
 ## 一、客户电脑需要先安装什么
 
-请在 Windows 电脑上先安装下面两个软件。
+如果拿到的是正式客户安装包，正常使用不需要预先安装 Python，也不需要安装 Node.js。
 
-### 1. Python
+安装包内会包含：
 
-下载地址：
+- `LocalReportReader.exe`
+- 已构建好的前端页面
+- 启动脚本
+- `.env` 配置文件
 
-```text
-https://www.python.org/downloads/windows/
-```
-
-安装时请勾选：
-
-```text
-Add python.exe to PATH
-```
-
-建议安装 Python 3.11 或更高版本。
-
-### 2. Node.js
-
-下载地址：
-
-```text
-https://nodejs.org/
-```
-
-选择 LTS 版本安装即可。
-
-### 3. 可选：LibreOffice
+### 1. 可选：LibreOffice
 
 如果需要处理旧版 `.doc` 文件，请安装 LibreOffice：
 
@@ -64,7 +45,7 @@ https://www.libreoffice.org/download/download-libreoffice/
 
 安装后如果 `.doc` 仍然无法解析，建议把 `.doc` 文件用 Word 另存为 `.docx` 后再上传。
 
-### 4. 可选：Tesseract OCR
+### 2. 可选：Tesseract OCR
 
 如果需要处理扫描 PDF 或图片，请安装 Tesseract OCR。
 
@@ -110,27 +91,26 @@ AI_TIMEOUT_SECONDS=240
 
 如果硅基流动账号不能使用 `deepseek-ai/DeepSeek-R1`，请把 `ECONOMIC_AUDIT_MODEL` 改成账号可用的模型。系统不会生成虚假的替代结论。
 
-## 四、启动工具
+## 四、安装并启动工具
 
-进入项目文件夹，双击：
+进入项目文件夹，直接双击根目录里的：
 
 ```text
-scripts\run_windows.bat
+install-and-start.bat
 ```
 
-第一次启动会自动安装依赖，时间可能较长。请保持网络连接，不要关闭窗口。
+正式客户安装包会直接启动，不需要安装 Python 或 Node.js。请保持网络连接，因为 AI 分析需要访问模型接口。
 
-启动成功后，会弹出两个命令行窗口：
+启动成功后，通常会弹出一个后端命令行窗口：
 
 - 后端窗口
-- 前端窗口
 
-请不要关闭这两个窗口。关闭后网页会停止访问。
+请不要关闭这个窗口。关闭后网页会停止访问。
 
 浏览器会自动打开：
 
 ```text
-http://127.0.0.1:5173/
+http://127.0.0.1:8787/
 ```
 
 如果浏览器没有自动打开，请手动复制上面的地址到浏览器。
@@ -217,7 +197,7 @@ D:\local-report-reader\data\output
 如果二维码没有显示，可以在手机浏览器输入页面显示的局域网地址，例如：
 
 ```text
-http://192.168.x.x:5173/
+http://192.168.x.x:8787/
 ```
 
 具体地址以页面显示为准。
@@ -236,29 +216,29 @@ http://192.168.x.x:5173/
 关闭方式：
 
 1. 关闭浏览器页面。
-2. 回到后端和前端两个命令行窗口。
-3. 分别按 `Ctrl + C`。
+2. 回到后端命令行窗口。
+3. 按 `Ctrl + C`。
 4. 看到提示后输入 `Y` 并回车。
 
 下次使用时，重新双击：
 
 ```text
-scripts\run_windows.bat
+install-and-start.bat
 ```
 
 ## 常见问题
 
 ### 1. 双击脚本后提示没有 Python
 
-说明电脑没有安装 Python，或者安装时没有勾选 `Add python.exe to PATH`。
+正式客户安装包正常不应该出现这个提示。这个提示说明包里缺少 `LocalReportReader.exe`，客户拿到的是源码包或不完整包。
 
-解决方法：重新安装 Python，并勾选 `Add python.exe to PATH`。
+解决方法：更换为包含 `LocalReportReader.exe` 的正式客户安装包。只有源码开发模式才需要安装 Python。
 
 ### 2. 双击脚本后提示没有 npm
 
-说明电脑没有安装 Node.js。
+如果使用的是客户安装包，正常不应该出现这个提示。这个提示说明包里缺少 `frontend\dist` 构建产物，或者客户拿到的是源码开发包，不是客户安装包。
 
-解决方法：安装 Node.js LTS 版本。
+解决方法：更换为包含前端构建产物的客户安装包。只有开发源码模式才需要安装 Node.js LTS。
 
 ### 3. 生成精读失败
 

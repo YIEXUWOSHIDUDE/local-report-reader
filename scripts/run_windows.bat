@@ -1,5 +1,4 @@
 @echo off
-chcp 65001 >nul
 setlocal
 
 set "ROOT_DIR=%~dp0.."
@@ -7,33 +6,46 @@ cd /d "%ROOT_DIR%"
 
 if not exist ".env" (
   copy ".env.example" ".env" >nul
-  echo.
-  echo 已创建 .env 配置文件。
-  echo 请先用记事本打开 .env，填写 OPENAI_API_KEY 后再重新运行本脚本。
-  echo.
+  echo Created .env from .env.example.
+  echo Open .env with Notepad, fill OPENAI_API_KEY, then run this file again.
   pause
   exit /b 1
+)
+
+if exist "LocalReportReader.exe" (
+  echo Starting LocalReportReader.exe...
+  start "Local Report Reader" "%ROOT_DIR%\LocalReportReader.exe"
+  echo Started. The browser should open automatically.
+  pause
+  exit /b 0
 )
 
 where python >nul 2>nul
-if %errorlevel% equ 0 (
-  set "PYTHON_CMD=python"
-) else (
+if errorlevel 1 (
   where py >nul 2>nul
-  if %errorlevel% equ 0 (
-    set "PYTHON_CMD=py"
-  ) else (
-    echo 未检测到 Python。请先安装 Python 3.11 或更高版本，并勾选 Add python.exe to PATH。
+  if errorlevel 1 (
+    echo Python was not found.
+    echo Install Python 3.11 or newer and enable "Add python.exe to PATH".
     pause
     exit /b 1
   )
+  set "PYTHON_CMD=py"
+) else (
+  set "PYTHON_CMD=python"
 )
 
-where npm >nul 2>nul
-if not %errorlevel% equ 0 (
-  echo 未检测到 Node.js/npm。请先安装 Node.js LTS 版本。
-  pause
-  exit /b 1
+set "FRONTEND_BUILT=0"
+if exist "frontend\dist\index.html" set "FRONTEND_BUILT=1"
+
+if "%FRONTEND_BUILT%"=="0" (
+  where npm >nul 2>nul
+  if errorlevel 1 (
+    echo Node.js/npm was not found.
+    echo This package does not contain frontend\dist.
+    echo Install Node.js LTS, or ask for the customer package with built frontend files.
+    pause
+    exit /b 1
+  )
 )
 
 if not exist "data" mkdir "data"
@@ -42,30 +54,32 @@ if not exist "data\output" mkdir "data\output"
 if not exist "data\exports" mkdir "data\exports"
 
 if not exist ".venv\Scripts\python.exe" (
-  echo 正在创建 Python 虚拟环境...
+  echo Creating Python virtual environment...
   %PYTHON_CMD% -m venv ".venv"
-  if not %errorlevel% equ 0 (
-    echo Python 虚拟环境创建失败。
+  if errorlevel 1 (
+    echo Failed to create Python virtual environment.
     pause
     exit /b 1
   )
 )
 
-echo 正在安装 Python 依赖...
+echo Installing Python dependencies...
 ".venv\Scripts\python.exe" -m pip install -r "backend\requirements.txt"
-if not %errorlevel% equ 0 (
-  echo Python 依赖安装失败，请检查网络或 Python 环境。
+if errorlevel 1 (
+  echo Failed to install Python dependencies.
+  echo Check network and Python installation.
   pause
   exit /b 1
 )
 
-if not exist "frontend\node_modules" (
-  echo 正在安装前端依赖...
+if "%FRONTEND_BUILT%"=="0" if not exist "frontend\node_modules" (
+  echo Installing frontend dependencies...
   pushd "frontend"
   npm install
-  if not %errorlevel% equ 0 (
+  if errorlevel 1 (
     popd
-    echo 前端依赖安装失败，请检查网络或 Node.js 环境。
+    echo Failed to install frontend dependencies.
+    echo Check network and Node.js installation.
     pause
     exit /b 1
   )
@@ -73,16 +87,29 @@ if not exist "frontend\node_modules" (
 )
 
 echo.
-echo 正在启动本地服务...
-echo 浏览器地址：http://127.0.0.1:5173/
-echo 手机访问：手机和电脑连接同一个 Wi-Fi 后，扫描页面上的二维码。
+echo Starting local services...
+if "%FRONTEND_BUILT%"=="1" (
+  echo Browser URL: http://127.0.0.1:8787/
+  echo Built frontend found. Node.js is not required for this customer package.
+) else (
+  echo Browser URL: http://127.0.0.1:5173/
+  echo Built frontend not found. Starting Vite dev server with Node.js.
+)
 echo.
 
-start "可研报告精读工具-后端" cmd /k """%ROOT_DIR%\.venv\Scripts\python.exe"" -m uvicorn app.main:app --app-dir ""%ROOT_DIR%\backend"" --host 0.0.0.0 --port 8787"
-start "可研报告精读工具-前端" cmd /k "npm --prefix ""%ROOT_DIR%\frontend"" run dev"
+start "Local Report Reader Backend" "%ComSpec%" /k call "%ROOT_DIR%\scripts\start_backend.bat"
+if "%FRONTEND_BUILT%"=="0" start "Local Report Reader Frontend" "%ComSpec%" /k call "%ROOT_DIR%\scripts\start_frontend.bat"
 
 timeout /t 3 >nul
-start "" "http://127.0.0.1:5173/"
+if "%FRONTEND_BUILT%"=="1" (
+  start "" "http://127.0.0.1:8787/"
+) else (
+  start "" "http://127.0.0.1:5173/"
+)
 
-echo 已启动。请不要关闭弹出的后端和前端窗口。
+if "%FRONTEND_BUILT%"=="1" (
+  echo Started. Do not close the backend command window.
+) else (
+  echo Started. Do not close the backend and frontend command windows.
+)
 pause

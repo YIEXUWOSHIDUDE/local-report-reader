@@ -2,6 +2,8 @@
 .venv/
 node_modules/
 dist/
+build/
+*.spec
 __pycache__/
 *.pyc
 .env
